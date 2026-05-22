@@ -21,13 +21,19 @@ const messageFilter = new MessageFilter();
 
 // Parse --phone argument for pairing code mode
 const phoneArg = process.argv.find(a => a.startsWith('--phone='));
-const phoneNumber = phoneArg ? phoneArg.split('=')[1] : null;
+let phoneNumber = phoneArg ? phoneArg.split('=')[1] : null;
+
+if (phoneNumber === 'NUMBER' || phoneNumber === 'PHONE_NUMBER') {
+  console.error('ERROR: Replace NUMBER with your actual phone number.');
+  console.error('  Correct: node index.js --phone=+60123357911');
+  console.error('  Or:      npm run pair -- --phone=+60123357911\n');
+  process.exit(1);
+}
 
 if (phoneNumber) {
   console.log('Using phone pairing mode. Make sure to:');
   console.log('  Open WhatsApp > Linked Devices > Link with phone number');
   console.log('');
-  // Wait a moment for user to read
 }
 
 async function connect() {
