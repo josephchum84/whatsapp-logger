@@ -46,6 +46,7 @@ async function connect() {
 
   const sock = makeWASocket({
     auth: state,
+    version: [2, 2412, 1],
     printQRInTerminal: false,
     logger,
     markOnlineOnConnect: true,
