@@ -1,4 +1,5 @@
 node_modules/
 data/auth/
 data/logs/
+.wwebjs_cache/
 *.log
