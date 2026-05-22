@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "qr": "node index.js --qr"
+    "pair": "node index.js --phone=PHONE_NUMBER",
+    "pair:us": "node index.js --phone=+1",
+    "pair:india": "node index.js --phone=+91"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.9",
