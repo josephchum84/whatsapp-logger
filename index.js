@@ -19,15 +19,25 @@ const logger = pino({
 const messageStore = new MessageStore(config);
 const messageFilter = new MessageFilter();
 
-// Parse --phone argument for pairing code mode
+// Parse arguments
 const phoneArg = process.argv.find(a => a.startsWith('--phone='));
 let phoneNumber = phoneArg ? phoneArg.split('=')[1] : null;
+const freshStart = process.argv.includes('--fresh');
 
 if (phoneNumber === 'NUMBER' || phoneNumber === 'PHONE_NUMBER') {
   console.error('ERROR: Replace NUMBER with your actual phone number.');
   console.error('  Correct: node index.js --phone=+60123357911');
   console.error('  Or:      npm run pair -- --phone=+60123357911\n');
   process.exit(1);
+}
+
+// Fresh start: delete old auth state
+if (freshStart) {
+  const authDir = path.join(config.logging.authDir, config.whatsapp.sessionName);
+  if (fs.existsSync(authDir)) {
+    console.log('Clearing old auth state...');
+    fs.rmSync(authDir, { recursive: true, force: true });
+  }
 }
 
 if (phoneNumber) {
@@ -44,9 +54,10 @@ async function connect() {
   // Check if we already have a saved session
   const isLoggedIn = state.creds?.me?.id ? true : false;
 
+  console.log(`Connecting with WA version ${state.creds?.me ? 'logged-in' : 'new-session'}...`);
+
   const sock = makeWASocket({
     auth: state,
-    version: [2, 2412, 1],
     printQRInTerminal: false,
     logger,
     markOnlineOnConnect: true,
@@ -56,7 +67,7 @@ async function connect() {
     qrTimeout: 300000,
     keepAliveIntervalMs: 25000,
     defaultQueryTimeoutMs: 60000,
-    browser: ['WhatsApp Logger', 'Chrome', '1.0.0'],
+    browser: ['WhatApp Logger', 'Chrome', '1.0.0'],
   });
 
   // Handle QR code
@@ -141,6 +152,10 @@ async function connect() {
         console.log(`  Message: ${err.message}`);
         console.log(`  Data: ${JSON.stringify(err.data || {})}`);
         if (err.stack) console.log(`  Stack: ${err.stack.split('\n')[1]?.trim()}`);
+        // Log the full error for debugging
+        if (err.data && typeof err.data === 'object') {
+          try { console.log('  Full attrs:', JSON.stringify(err.data, null, 4)); } catch(e) {}
+        }
       }
 
       console.log(`\n✗ Disconnected (${reasonName}). Reconnecting in ${config.whatsapp.reconnectDelay / 60000}min...\n`);

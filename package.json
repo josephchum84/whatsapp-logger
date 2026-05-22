@@ -8,7 +8,7 @@
     "pair": "node index.js --phone=NUMBER"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.9",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
     "pino": "^8.17.2",
     "qrcode-terminal": "^0.12.0"
   }
