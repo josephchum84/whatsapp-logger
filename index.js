@@ -59,7 +59,14 @@ async function connect() {
   });
 
   // Handle QR code
-  sock.ev.on('connection.update', async ({ qr, connection, lastDisconnect }) => {
+  sock.ev.on('connection.update', async (update) => {
+    const { qr, connection, lastDisconnect } = update;
+
+    // Log all connection state changes for debugging
+    if (connection || qr || lastDisconnect) {
+      const state = connection || (qr ? 'qr_ready' : '');
+      if (state) console.log(`[state] ${state}`);
+    }
     if (qr) {
       if (phoneNumber) {
         const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
@@ -125,6 +132,16 @@ async function connect() {
 
       const reason = lastDisconnect?.error?.output?.statusCode;
       const reasonName = Object.keys(DisconnectReason).find(k => DisconnectReason[k] === reason) || 'Unknown';
+
+      if (lastDisconnect?.error) {
+        const err = lastDisconnect.error;
+        console.log(`\n✗ Disconnect details:`);
+        console.log(`  StatusCode: ${err.output?.statusCode}`);
+        console.log(`  Message: ${err.message}`);
+        console.log(`  Data: ${JSON.stringify(err.data || {})}`);
+        if (err.stack) console.log(`  Stack: ${err.stack.split('\n')[1]?.trim()}`);
+      }
+
       console.log(`\n✗ Disconnected (${reasonName}). Reconnecting in ${config.whatsapp.reconnectDelay / 60000}min...\n`);
       setTimeout(connect, config.whatsapp.reconnectDelay);
     }
