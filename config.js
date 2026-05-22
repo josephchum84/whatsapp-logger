@@ -7,7 +7,7 @@ module.exports = {
     // Mark messages as read (false for pure logging)
     markRead: false,
     // Reconnect delay on disconnect (ms)
-    reconnectDelay: 5000,
+    reconnectDelay: 300000,
   },
 
   logging: {
