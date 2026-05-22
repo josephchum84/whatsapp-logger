@@ -59,6 +59,11 @@ async function connect() {
   const sock = makeWASocket({
     auth: state,
     version: [2, 2413, 51],
+    options: {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      },
+    },
     printQRInTerminal: false,
     logger,
     markOnlineOnConnect: true,
@@ -68,7 +73,7 @@ async function connect() {
     qrTimeout: 300000,
     keepAliveIntervalMs: 25000,
     defaultQueryTimeoutMs: 60000,
-    browser: ['WhatApp Logger', 'Chrome', '1.0.0'],
+    browser: ['WhatsApp Logger', 'Chrome', '1.0.0'],
   });
 
   // Handle QR code
@@ -148,14 +153,13 @@ async function connect() {
 
       if (lastDisconnect?.error) {
         const err = lastDisconnect.error;
-        console.log(`\n✗ Disconnect details:`);
-        console.log(`  StatusCode: ${err.output?.statusCode}`);
-        console.log(`  Message: ${err.message}`);
-        console.log(`  Data: ${JSON.stringify(err.data || {})}`);
-        if (err.stack) console.log(`  Stack: ${err.stack.split('\n')[1]?.trim()}`);
-        // Log the full error for debugging
-        if (err.data && typeof err.data === 'object') {
-          try { console.log('  Full attrs:', JSON.stringify(err.data, null, 4)); } catch(e) {}
+        const statusCode = err.output?.statusCode;
+        if (statusCode === 405 || statusCode === 515) {
+          console.log(`\n✗ WhatsApp rejected the connection (${reasonName}).`);
+          console.log('  Check that:');
+          console.log('  • Your internet allows WebSocket connections to web.whatsapp.com');
+          console.log('  • You are not behind a firewall/VPN blocking WhatsApp');
+          console.log('  • Try opening https://web.whatsapp.com in a browser first\n');
         }
       }
 
