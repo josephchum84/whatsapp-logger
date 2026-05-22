@@ -52,6 +52,7 @@ async function connect() {
     syncFullHistory: false,
     emitOwnEvents: false,
     connectTimeoutMs: 30000,
+    qrTimeout: 300000,
     keepAliveIntervalMs: 25000,
     defaultQueryTimeoutMs: 60000,
     browser: ['WhatsApp Logger', 'Chrome', '1.0.0'],
