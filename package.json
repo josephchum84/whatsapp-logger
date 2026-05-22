@@ -1,0 +1,15 @@
+{
+  "name": "whatsapp-logger",
+  "version": "1.0.0",
+  "description": "WhatsApp message logger for AI agent training data collection",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "qr": "node index.js --qr"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "pino": "^8.17.2",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

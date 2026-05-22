@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WhatsApp Message Record",
+  "description": "Schema for logged WhatsApp messages used for AI agent training",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique message ID from WhatsApp"
+    },
+    "chatId": {
+      "type": "string",
+      "description": "JID of the chat (phone@s.whatsapp.net or group@g.us)",
+      "examples": ["1234567890@s.whatsapp.net", "1234567890-123456@g.us"]
+    },
+    "chatName": {
+      "type": "string",
+      "description": "Human-readable chat identifier"
+    },
+    "sender": {
+      "type": "string",
+      "description": "JID of the message sender"
+    },
+    "senderName": {
+      "type": ["string", "null"],
+      "description": "Display name / push name of sender if available"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the message"
+    },
+    "type": {
+      "type": "string",
+      "description": "WhatsApp message type",
+      "examples": ["conversation", "extendedTextMessage", "imageMessage", "videoMessage"]
+    },
+    "content": {
+      "type": ["string", "null"],
+      "description": "Message text content, or type indicator for media messages"
+    }
+  },
+  "required": ["id", "chatId", "sender", "timestamp", "type"],
+  "additionalProperties": false
+}
