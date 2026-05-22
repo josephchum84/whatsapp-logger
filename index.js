@@ -14,10 +14,21 @@ const analyzer = new ConversationAnalyzer(config);
 const freshStart = process.argv.includes('--fresh');
 const runAnalysisOnly = process.argv.includes('--analyze');
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 // --analyze mode: run analysis on existing data and exit
 if (runAnalysisOnly) {
-  const date = process.argv.find(a => a.startsWith('--date='));
-  const targetDate = date ? date.split('=')[1] : new Date().toISOString().slice(0, 10);
+  const dateArg = process.argv.find(a => a.startsWith('--date='));
+  let targetDate;
+  if (dateArg) {
+    targetDate = dateArg.split('=')[1];
+    if (!DATE_REGEX.test(targetDate)) {
+      console.error('Invalid date format. Use --date=YYYY-MM-DD');
+      process.exit(1);
+    }
+  } else {
+    targetDate = new Date().toISOString().slice(0, 10);
+  }
   console.log(`Analyzing conversations for ${targetDate}...`);
   const conversations = messageStore.getConversationsForDate(targetDate);
   const total = Object.values(conversations).flat().length;
@@ -80,13 +91,8 @@ const client = new Client({
     headless: true,
     executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-gpu',
       '--no-first-run',
-      '--no-zygote',
-      '--single-process',
     ],
   },
   qrMaxRetries: 3,
@@ -136,17 +142,29 @@ client.on('message', async (msg) => {
   }
 });
 
+let reconnectAttempts = 0;
+
 client.on('disconnected', (reason) => {
   console.log(`\n✗ Disconnected: ${reason}`);
-  console.log(`  Reconnecting in ${config.whatsapp.reconnectDelay / 60000}min...\n`);
+  const maxAttempts = config.whatsapp.maxReconnectAttempts;
+  if (reconnectAttempts >= maxAttempts) {
+    console.error(`  Max reconnect attempts (${maxAttempts}) reached. Exiting.`);
+    process.exit(1);
+  }
+  reconnectAttempts++;
+  console.log(`  Reconnect attempt ${reconnectAttempts}/${maxAttempts} in ${config.whatsapp.reconnectDelay / 60000}min...\n`);
   setTimeout(() => client.initialize(), config.whatsapp.reconnectDelay);
 });
 
-process.on('SIGINT', () => {
+client.on('authenticated', () => {
+  reconnectAttempts = 0;
+});
+
+process.on('SIGINT', async () => {
   console.log('\nShutting down...');
-  messageStore.close();
+  console.log('  Draining pending writes...');
+  await messageStore._drainStreams().catch(() => {});
   client.destroy();
-  process.exit(0);
 });
 
 console.log('WhatsApp Logger — AI Training Data Collector');

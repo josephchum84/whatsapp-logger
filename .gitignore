@@ -1,5 +1,5 @@
 node_modules/
-data/auth/
-data/logs/
+data/
 .wwebjs_cache/
+package-lock.json
 *.log
